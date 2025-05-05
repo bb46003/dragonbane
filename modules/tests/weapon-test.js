@@ -3,15 +3,9 @@ import DoD_Utility from "../utility.js";
 
 export default class DoDWeaponTest extends DoDSkillTest  {
 
-    constructor(actor, weapon, options, dialogData) {
-        super(actor, actor.findSkill(weapon.system.skill?.name), options, dialogData);
+    constructor(actor, weapon, options) {
+        super(actor, actor.findSkill(weapon.system.skill?.name), options);
         this.weapon = weapon;
-        if(dialogData === undefined){
-            this.dialogData = {};
-        }
-        else{
-            this.dialogData = dialogData;
-        }
     }
 
     updateDialogData() {

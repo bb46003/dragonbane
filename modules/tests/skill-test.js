@@ -3,19 +3,13 @@ import DoDTest from "./dod-test.js";
 
 export default class DoDSkillTest extends DoDTest {
 
-    constructor(actor, skill, options, dialogData) {
+    constructor(actor, skill, options) {
         super(actor, options);
         this.actor = actor;
         this.skill = skill;
         this.attribute = skill?.system.attribute;
         this.canPush = options ? options.canPush !== false : true;
         this.isReRoll = options?.isReRoll | false;
-        if(dialogData === undefined){
-            this.dialogData = {};
-        }
-        else{
-            this.dialogData = dialogData;
-        }
     }
 
     async getRollOptions() {

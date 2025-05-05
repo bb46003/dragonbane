@@ -4,16 +4,10 @@ import DoDSkillTest from "./skill-test.js";
 
 export default class DoDSpellTest extends DoDSkillTest  {
 
-    constructor(actor, spell, options, dialogData) {
-        super(actor, actor.findMagicSkill(spell.system.school), options, dialogData);
+    constructor(actor, spell, options) {
+        super(actor, actor.findMagicSkill(spell.system.school), options);
         this.spell = spell;
         this.hasPowerLevel = spell.system.rank > 0;
-        if(dialogData === undefined){
-            this.dialogData = {};
-        }
-        else{
-            this.dialogData = dialogData;
-        }
     }
 
     updateDialogData() {

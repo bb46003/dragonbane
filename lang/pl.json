@@ -208,7 +208,7 @@
         },
         "critChoices": {
             "choiceLabel": "Efekty krytyczne",
-            "doubleWeaponDamage": "Podwójnie obrażenia bronii<br>",
+            "doubleWeaponDamage": "Podwujnie obrażenia bronii<br>",
             "extraAttack": "Możesz natychmiast wykonać drugi atak przeciw innemu wrogowi. Jest on akcją darmową. <br>",
             "ignoreArmor": "Zbroja nie chroni celu przed obrażeniami.<br>"
         },
@@ -239,7 +239,7 @@
             "pushChoiceLabel": "Wybierz dolegliwość:",
             "parryWeapon": "<p>Jeżeli sparowane obrażenie przekroczą trwałość broni (<b>{durability}</b>), ta zostanie ona uszkodzona. Obrażenia kłute nie mogą uszkodzić bronii.</p>",
             "parryShield": "<p>Jeżeli sparowane obrażenie przekroczą trwałość tarczy(<b>{durability}</b>), ta zostanie ona uszkodzona. Obrażenia kłute nie mogą uszkodzić tarczy.</p>",
-            "deathRoll": "Wynik testu Agonii <b>{result}</b>"
+            "deathRoll": "Death Roll <b>{result}</b>"
         },
         "secondaryAttributeTypes": {
             "none": "-",
@@ -255,7 +255,7 @@
             "swarm": "Rój"
         },
         "skill": {
-            "advance": "Do rozwoju",
+            "advance": "Advance",
             "advanceTooltip": "Zaznacz aby zrobić test rozwoju.",
             "advancementFail": "Nie udało się rozwinąć <b>{skill}</b>.",
             "advancementSuccess": "<b>{skill}</b> podniesiona z <b>{old}</b> do <b>{new}</b>.",
@@ -264,7 +264,7 @@
             "hide": "Ukryj",
             "hideTooltip": "Ukryj umiejętnośc na głównej stronie karty postaci",
             "markAdvancement": "Zaznacz umiejętnosć do rozwoju",
-            "rollAdvancement": "Rzuć na rozwój na koniec sesji.\r Kliknij prawym by usunąć bez wykonania rzutu.",
+            "rollAdvancement": "Rzuć na rozwuj na koniec sesji.\r Kliknij prawym by usunąć bez wykonania rzutu.",
             "type": "Rodzaj",
             "typeTooltip": "Rodzaj umiejętnosć"
         },
@@ -287,7 +287,7 @@
             "rangeType": "Zasięg",
             "rank": "Potęga",
             "requirement": "Techniki",
-            "school": "Szkoła Magii"
+            "school": "School of Magic"
         },
         "spellDurationTypes": {
             "instant": "Natychmiast",
@@ -341,7 +341,7 @@
             "belowRequiredStr": "Poniżej wymagań SIŁ"
         },
         "unit": {
-            "meterPlural": "Metry"
+            "meterPlural": "metry"
         },
         "weaponFeatureTypes": {
             "bludgeoning": "Obuchowe",
@@ -403,7 +403,7 @@
                 "disabled": "Nieaktywny",
                 "effect": "Efekt",
                 "effects": "Efekty",
-                "encumbrance": "Obecnie nosisz",
+                "encumbrance": "Przeciążenie",
                 "equipped": "Noszony",
                 "equipped-armor": "Noszona zbroja",
                 "equipped-helmet": "Noszony hełm",

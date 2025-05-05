@@ -13,7 +13,7 @@ export default class DoDTest {
     @param {Integer} extraBanes : the number of additional banes to apply
     @param {Integer} extraBoons : the number of additional boons to apply
 */
-    constructor(actor, options = {}, dialogData) {
+    constructor(actor, options = {}) {
         this.actor = actor;
         this.options = options;
         this.dialogData = {};
@@ -23,12 +23,6 @@ export default class DoDTest {
         this.defaultBanesBoons = options?.defaultBanesBoons;
         this.skipDialog = options?.skipDialog || this.noBanesBoons || this.defaultBanesBoons;
         this.autoSuccess = options?.autoSuccess;
-        if(dialogData === undefined){
-            this.dialogData = {};
-        }
-        else{
-            this.dialogData = dialogData;
-        }
     }
 
     async roll() {
@@ -38,22 +32,11 @@ export default class DoDTest {
 
         this.updatePreRollData();
         const formula = this.options.formula ?? this.formatRollFormula(this.preRollData);
-        let rollOptions = {};
-        if(this.isReRoll === 0){
-            rollOptions = {
-                boons: this.options.boons,
-                banes: this.options.banes,
-                extraBoons: this.options.extraBoons,
-                extraBanes: this.options.extraBanes
-            }
-        }
-        else{
-            rollOptions = {
-                boons: this.dialogData.boons,
-                banes: this.dialogData.banes,
-                extraBoons: this.dialogData.extraBoons,
-                extraBanes: this.dialogData.extraBanes
-            }
+        const rollOptions = {
+            boons: this.options.boons,
+            banes: this.options.banes,
+            extraBoons: this.options.extraBoons,
+            extraBanes: this.options.extraBanes
         }
         this.roll = await new DoDRoll(formula, {}, rollOptions).roll(game.release.generation < 12 ? {async: true} : {});
 
@@ -117,56 +100,53 @@ export default class DoDTest {
     }
 
     updateDialogData() {
-        if(this.isReRoll === 0){
-            if (this.noBanesBoons || this.autoSuccess) {
-                return;
-            }
 
-            let banes = this.options.banes ?? [];
-            let boons = this.options.boons ?? [];
-
-            if (this.attribute && this.actor.hasCondition(this.attribute)) {
-                banes.push( {source: game.i18n.localize("DoD.conditions." + this.attribute), value: true});
-            }
-
-            let rollTarget = this.skill ? this.skill.name.toLowerCase() : this.attribute?.toLowerCase();
-            let rollAttribute = (this.skill && this.skill.system.attribute) ? this.skill.system.attribute.toLowerCase() : rollTarget;
-
-            for (let item of this.actor.items.contents) {
-                if (item.system.banes?.length) {
-                    let itemBanes = DoD_Utility.splitAndTrimString(item.system.banes.toLowerCase());
-                    if (itemBanes.find(element => element.toLowerCase() === rollTarget || element.toLowerCase() === rollAttribute)) {
-                        let value = !!item.system.worn || item.type === "injury";
-                        banes.push( {source: item.name, value: value});
-                    }
-                }
-                if (item.system.boons?.length) {
-                    let itemBoons = DoD_Utility.splitAndTrimString(item.system.boons.toLowerCase());
-                    if (itemBoons.find(element => element.toLowerCase() === rollTarget || element.toLowerCase() === rollAttribute)) {
-                        let value = !!item.system.worn;
-                        boons.push( {source: item.name, value: value});
-                    }
-                }
-            
-            }
-
-            this.dialogData.banes = banes;
-            this.dialogData.boons = boons;
-
-            // Needed for dialog box layout
-            this.dialogData.fillerBanes = Math.max(0, boons.length - banes.length);
-            this.dialogData.fillerBoons = Math.max(0, banes.length - boons.length);
+        if (this.noBanesBoons || this.autoSuccess) {
+            return;
         }
-    }
 
+        let banes = this.options.banes ?? [];
+        let boons = this.options.boons ?? [];
+
+        if (this.attribute && this.actor.hasCondition(this.attribute)) {
+            banes.push( {source: game.i18n.localize("DoD.conditions." + this.attribute), value: true});
+        }
+
+        let rollTarget = this.skill ? this.skill.name.toLowerCase() : this.attribute?.toLowerCase();
+        let rollAttribute = (this.skill && this.skill.system.attribute) ? this.skill.system.attribute.toLowerCase() : rollTarget;
+
+        for (let item of this.actor.items.contents) {
+            if (item.system.banes?.length) {
+                let itemBanes = DoD_Utility.splitAndTrimString(item.system.banes.toLowerCase());
+                if (itemBanes.find(element => element.toLowerCase() === rollTarget || element.toLowerCase() === rollAttribute)) {
+                    let value = !!item.system.worn || item.type === "injury";
+                    banes.push( {source: item.name, value: value});
+                }
+            }
+            if (item.system.boons?.length) {
+                let itemBoons = DoD_Utility.splitAndTrimString(item.system.boons.toLowerCase());
+                if (itemBoons.find(element => element.toLowerCase() === rollTarget || element.toLowerCase() === rollAttribute)) {
+                    let value = !!item.system.worn;
+                    boons.push( {source: item.name, value: value});
+                }
+            }
+        }
+
+        this.dialogData.banes = banes;
+        this.dialogData.boons = boons;
+
+        // Needed for dialog box layout
+        this.dialogData.fillerBanes = Math.max(0, boons.length - banes.length);
+        this.dialogData.fillerBoons = Math.max(0, banes.length - boons.length);
+    }
 
 
     async getRollOptionsFromDialog(title, label) {
 
         if (this.skipDialog) {
             return {
-                banes: this.options.noBanesBoons ? []: (this.dialogData?.banes?.map(e => e.source) ?? 0),              
-                boons: this.options.noBanesBoons ? []: (this.dialogData?.boons?.map(e => e.source) ?? 0),
+                banes: this.options.noBanesBoons ? [] : this.dialogData.banes.map((e) => e.source),
+                boons: this.options.noBanesBoons ? [] : this.dialogData.boons.map((e) => e.source),
                 extraBanes: 0,
                 extraBoons: 0
             }
