@@ -50,6 +50,8 @@ import DoDCombatSettings from "./modules/apps/combat-settings.js";
 import DoDOptionalRuleSettings from "./modules/apps/optional-rule-settings.js";
 import DoDCoreSettings from "./modules/apps/core-settings.js";
 
+import characterCreation from "./modules/apps/character-creation.mjs"
+
 function registerHandlebarsHelpers() {
 
     /*
@@ -62,6 +64,25 @@ function registerHandlebarsHelpers() {
         }
         return result;
     });
+      Handlebars.registerHelper({
+    eq: (v1, v2) => v1 === v2,
+    ne: (v1, v2) => v1 !== v2,
+    lt: (v1, v2) => v1 < v2,
+    gt: (v1, v2) => v1 > v2,
+    lte: (v1, v2) => v1 <= v2,
+    gte: (v1, v2) => v1 >= v2,
+    and() {
+      return Array.prototype.every.call(arguments, Boolean);
+    },
+    or() {
+      return Array.prototype.slice.call(arguments, 0, -1).some(Boolean);
+    },
+    range: (v1, v2, v3) => checkRange(v1, v2, v3),
+    not: (v) => !v,
+  });
+    Handlebars.registerHelper("log", function (log) {
+    console.log(log);
+  });
 
     /*
     * Repeat given markup in the range: from <= @index <= to
@@ -235,7 +256,8 @@ Hooks.once("init", function () {
         useItem: DoDMacro.useItemMacro,
         monsterAttack: DoDMacro.monsterAttackMacro,
         monsterDefend: DoDMacro.monsterDefendMacro,
-        drawTreasureCards: DoD_Utility.drawTreasureCards
+        drawTreasureCards: DoD_Utility.drawTreasureCards,
+        characterCreation: characterCreation
     };
 
     // Add status effects for conditions
