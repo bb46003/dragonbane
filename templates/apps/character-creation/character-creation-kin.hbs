@@ -1,0 +1,43 @@
+<section   class="tab kin {{tabs.kin.cssClass}}"  action-data="tab"  data-tab="kin">    
+    <div class="block">
+        <label>{{localize "DoD.characterCreation.description"}}</label>
+        <label>
+            {{localize "DoD.characterCreation.choiceKin"}}
+            <a data-tooltip="{{localize "DoD.characterCreation.randomKin"}}" class="fa-solid fa-dice-d20" data-action="random" data-type="kin" data-dice="{{numbersOfKins}}"> </a>
+        </label>
+        <select name="kin">
+            {{#each kin}}
+                <option value="{{@index}}" {{#if (eq @index ../_state.selectedKinIndex)}}selected{{/if}}>
+                    {{this.name}}
+                </option>
+            {{/each}}
+        </select>
+        <div class="kin-description">
+            <label>{{localize "DoD.ui.character-sheet.description"}}</label>
+            <p>{{{selectedKin.description}}}</p>
+            <div class="flexrow">
+                <label>{{localize "DoD.ui.character-sheet.movement"}}</label>
+                <p>{{selectedKin.movement}}</p>
+            </div>
+            <label>{{localize "DoD.ui.character-sheet.abilities"}}</label>
+            <ul>
+                {{#each selectedKin.abilities}}
+                    <li>
+                        <label>{{this.name}}</label>
+                        <p>{{{this.itemDescriptionHTML}}}</p>
+                        <div class="flexrow">
+                            <label>{{localize "DoD.ability.wp"}}</label>
+                            <p>{{this.system.wp}}</p>
+                        </div>
+                        {{#if this.system.boons}}
+                            <div class="flexrow">
+                                <label>{{localize "DoD.ui.dialog.boons"}}</label>
+                                <p>{{this.system.boons}}</p>
+                            </div>
+                        {{/if}}
+                    </li>
+                {{/each}}
+            </ul>
+        </div>
+    </div>
+</section>
