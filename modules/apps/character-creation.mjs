@@ -9,6 +9,8 @@ export default class DoDCharacterCreation extends HandlebarsApplicationMixin(App
         this._state = {
             selectedKinIndex: 0,
             selectedProfessionIndex: 0,
+            name: "",
+            age: "",
             activeTab: "kin"
         };
 
@@ -25,7 +27,7 @@ export default class DoDCharacterCreation extends HandlebarsApplicationMixin(App
         tag: "form",
         window: {
             title: "DoD.characterCreator",
-            contentClasses: ["dragonbane", "standard-form"],
+            contentClasses: ["system-dragonbane", "standard-form", "overflow"],
             resizable: true,
             icon: "fa-solid fa-gears",
         },
@@ -35,6 +37,7 @@ export default class DoDCharacterCreation extends HandlebarsApplicationMixin(App
         actions:{
             random: DoDCharacterCreation.#rollRandom,
             changeTab: DoDCharacterCreation.#changeTab,
+            rollTable: DoDCharacterCreation.#rollTable,
 
         }
     };
@@ -48,6 +51,9 @@ export default class DoDCharacterCreation extends HandlebarsApplicationMixin(App
         },
         kin:{
            template: "systems/dragonbane/templates/apps/character-creation/character-creation-kin.hbs", 
+        },
+        age:{
+           template: "systems/dragonbane/templates/apps/character-creation/character-creation-age-name.hbs", 
         }
     };
   static TABS = {
@@ -55,6 +61,7 @@ export default class DoDCharacterCreation extends HandlebarsApplicationMixin(App
       tabs: [
         { id: "kin"},
         { id: "profession" },
+        {id: "age"}
       ],
     },
   };
@@ -73,6 +80,9 @@ export default class DoDCharacterCreation extends HandlebarsApplicationMixin(App
         context.selectedProfession = context.profession[this._state.selectedProfessionIndex];
         context._state = this._state;
         context.tabs[this._state.activeTab].cssClass = "active"
+        context.config = CONFIG.DoD;
+        context.ageTable = await this.getAgeTable();
+        context.nameTable = await this.getNameTable(context.kin);
         return context;
     }
 
@@ -105,7 +115,8 @@ export default class DoDCharacterCreation extends HandlebarsApplicationMixin(App
         }));
         return Promise.all(profesion)
     }
-async _getAbility(namesString) {
+
+    async _getAbility(namesString) {
     // Split and clean names
     const names = namesString
         .split(",")
@@ -122,8 +133,20 @@ async _getAbility(namesString) {
     return abilities
 
 
-}
+    }
 
+    async getAgeTable(){
+       const age = ["Age", game.i18n.localize("DoD.ui.character-sheet.age")];
+        const ageTable = game.tables.filter(t =>age.some(word => t.name.includes(word)));
+        return ageTable.length > 0;
+    }
+    async getNameTable(kin) {
+       const kinNames = kin.map(k => k.name);
+
+    return game.tables.some(table =>
+        kinNames.some(name => table.name.includes(name))
+    );
+    }
     // =========================
     // RENDER HOOK
     // =========================
@@ -165,10 +188,10 @@ async _getAbility(namesString) {
         await roll.evaluate()
         switch(type){
             case "kin":
-                this._state.selectedKinIndex = roll.total;
+                this._state.selectedKinIndex = roll.total-1;
                 break;
             case "profession":
-                this._state.selectedProfessionIndex = roll.total;
+                this._state.selectedProfessionIndex = roll.total-1;
                 break;
         }
 
@@ -176,13 +199,162 @@ async _getAbility(namesString) {
         await roll.toMessage()
     }
 
+static async #rollTable(event) {
+    const target = event.target;
+    const type = target.dataset.type;
+
+    let table = null;
+
+    if (type === "name") {
+        const selectedKin = target.closest("form")
+            .querySelector('select[name="kin"]');
+
+        const kinName = selectedKin.selectedOptions[0].innerText.trim();
+
+        const kinTables = game.tables.filter(table =>
+            table.name.includes(kinName)
+        );
+
+        table = await this.selectTable(kinTables, kinName);
+
+    } else if (type === "age") {
+
+        const ageTables = game.tables.filter(table =>
+            table.name.includes("Age") ||
+            table.name.includes(game.i18n.localize("DoD.ui.character-sheet.age"))
+        );
+
+        table = await this.selectTable(ageTables, "Age");
+    }
+
+    if (!table) return;
+
+    const result = await table.draw();
+
+    if (!result?.results?.length) return;
+
+    const value = result.results[0].description;
+
+    switch (type) {
+        case "name":
+            this._state.name = value;
+            break;
+
+        case "age":
+            this._state.age = value.toLowerCase();
+            break;
+    }
+
+    this.render({ force: true });
+}
+
+async selectTable(tables, targetName) {
+
+    let selectedTable = null;
+
+    if (tables.length > 0) {
+
+        const result = await foundry.applications.api.DialogV2.wait({
+            window: {
+                title: game.i18n.localize(
+                    "DoD.characterCreation.selectTable"
+                )
+            },
+            content: `
+                <p>
+                    ${game.i18n.format(
+                        "DoD.characterCreation.tableFound",
+                        { kin: targetName }
+                    )}
+                </p>
+
+                <ul>
+                    ${tables.map(t => `<li>${t.name}</li>`).join("")}
+                </ul>
+            `,
+            buttons: [
+                {
+                    action: "ok",
+                    label: game.i18n.localize(
+                        "DoD.characterCreation.ok"
+                    ),
+                    default: true
+                },
+                {
+                    action: "cancel",
+                    label: game.i18n.localize(
+                        "DoD.characterCreation.cancel"
+                    )
+                }
+            ]
+        });
+
+
+        if (result === "ok") {
+            selectedTable = tables[0];
+        }
+
+    } else {
+
+        const options = game.tables.contents.map(table =>
+            `<option value="${table.id}">
+                ${table.name}
+            </option>`
+        ).join("");
+
+        const result = await foundry.applications.api.DialogV2.wait({
+            window: {
+                title: game.i18n.localize(
+                    "DoD.characterCreation.selectTable"
+                )
+            },
+
+            content: `
+                <p>
+                    ${game.i18n.localize(
+                        "DoD.characterCreation.noTableFound"
+                    )}
+                </p>
+
+                <select id="table-select">
+                    ${options}
+                </select>
+            `,
+
+            buttons: [
+                {
+                    action: "roll",
+                    label: game.i18n.localize(
+                        "DoD.characterCreation.roll"
+                    ),
+                    default: true
+                },
+                {
+                    action: "cancel",
+                    label: game.i18n.localize(
+                        "DoD.characterCreation.cancel"
+                    )
+                }
+            ]
+        });
+
+
+        if (result === "roll") {
+            const select = document.querySelector("#table-select");
+            selectedTable = game.tables.get(select.value);
+        }
+    }
+
+    return selectedTable;
+}
+
 static #changeTab(ev){
   ev.preventDefault();
 
   const target = ev.target;
   const direction = Number(target.dataset.type);
 
-  const tabs = ["kin","profession","atributes","skill","weaknes","gear","memento","aperance"];
+  const tabs = ["kin","profession", "age","atributes","skill","weaknes","gear","memento","aperance"];
 
   const app = this;
 
