@@ -241,7 +241,19 @@ static async #rollTable(event) {
             break;
 
         case "age":
-            this._state.age = value.toLowerCase();
+            let rolledAge 
+            switch (value.toLowerCase()) {
+                case game.i18n.localize("DoD.ageTypes.young").toLowerCase():
+                    rolledAge = "young";
+                    break
+                case game.i18n.localize("DoD.ageTypes.adult").toLowerCase():
+                    rolledAge = "adult";
+                    break
+                case game.i18n.localize("DoD.ageTypes.old").toLowerCase():
+                    rolledAge = "old";
+                    break
+            }
+            this._state.age = rolledAge;
             break;
     }
 
