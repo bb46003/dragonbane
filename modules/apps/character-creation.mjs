@@ -40,7 +40,7 @@ export default class DoDCharacterCreation extends HandlebarsApplicationMixin(
     tag: "form",
     window: {
       title: "DoD.characterCreator",
-      contentClasses: ["system-dragonbane", "standard-form", "overflow"],
+      contentClasses: ["system-dragonbane", "standard-form", "overflow", "character-creation"],
       resizable: true,
       icon: "fa-solid fa-gears",
     },
@@ -107,10 +107,11 @@ export default class DoDCharacterCreation extends HandlebarsApplicationMixin(
     context.numbersOfProfession = context.profession.length;
     context.selectedKin = context.kin[this._state.selectedKinIndex];
     context.selectedProfession =
-      context.profession[this._state.selectedProfessionIndex];
+    context.profession[this._state.selectedProfessionIndex];
     context._state = this._state;
     context.tabs[this._state.activeTab].cssClass = "active";
     context.config = CONFIG.DoD;
+    delete context.config.attributes.none;
     context.ageTable = await this.getAgeTable();
     context.nameTable = await this.getNameTable(context.kin);
     context.skills = await this._prepareSkills(context.profession);
@@ -198,9 +199,7 @@ export default class DoDCharacterCreation extends HandlebarsApplicationMixin(
       kinNames.some((name) => table.name.includes(name)),
     );
   }
-  // =========================
-  // RENDER HOOK
-  // =========================
+
 
 async _onRender(context, options) {
   await super._onRender(context, options);
@@ -230,7 +229,7 @@ async _onRender(context, options) {
   const setupSkillLimit = (container, maxSelected) => {
     if (!container) return;
 
-    const checkboxes = container.querySelectorAll('input[type="checkbox"]');
+    const checkboxes = element.querySelectorAll('input[type="checkbox"]');
 
     const updateState = () => {
       const checkedCount = [...checkboxes]
@@ -248,23 +247,45 @@ async _onRender(context, options) {
 
     updateState();
   };
-
+  const inputName = element.querySelector('input[name="name"]');
+  inputName?.addEventListener("input", (event) => {
+    if (event.target.value.trim() !== "") {
+      const nextButton = element.querySelector('button[data-type="1"]');
+      nextButton.disabled = false;
+    }
+  });
 
   setupSkillLimit(proffesionSkills, 6);
   setupSkillLimit(otherSkills, this._state.numberOfSelectedSkills);
 }
+_updateSwapOptions(selects) {
+  const selectArray = Array.from(selects);
+  const usedValues = new Set();
+  selectArray.forEach((select) => {
+    if (usedValues.has(select.value)) {
+      const newOption = Array.from(select.options).find(
+        (option) => !usedValues.has(option.value)
+      );
 
-  _updateSwapOptions(selects) {
-    const selectedValues = Array.from(selects).map((select) => select.value);
+      if (newOption) {
+        select.value = newOption.value;
+      }
+    }
 
-    selects.forEach((select, index) => {
-      const otherSelected = selectedValues[index === 0 ? 1 : 0];
+    usedValues.add(select.value);
+  });
+  selectArray.forEach((select) => {
+    const otherSelectedValues = new Set(
+      selectArray
+        .filter((otherSelect) => otherSelect !== select)
+        .map((otherSelect) => otherSelect.value)
+    );
 
-      Array.from(select.options).forEach((option) => {
-        option.disabled = option.value === otherSelected;
-      });
+    Array.from(select.options).forEach((option) => {
+      option.disabled = otherSelectedValues.has(option.value);
     });
-  }
+  });
+}
 
   // =========================
   // EVENT HANDLERS
@@ -487,6 +508,10 @@ async _onRender(context, options) {
     this._state.activeTab = nextTabName;
     currentTab.classList.remove("active");
     nextTab.classList.add("active");
+    if (nextTabName === "age") {
+      const nextButton = app.form.querySelector('button[data-type="1"]');
+      nextButton.disabled = true;
+    }
   }
 
   static #resetAttributes(ev) {
@@ -572,6 +597,7 @@ async _onRender(context, options) {
         },
       ],
     }).render(true);
+    
   }
   static #swapValues(ev) {
     const target = ev.target;

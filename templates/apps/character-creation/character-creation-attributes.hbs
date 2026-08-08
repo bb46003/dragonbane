@@ -1,0 +1,38 @@
+<section   class="tab attributes {{tabs.attributes.cssClass}}"  action-data="tab"  data-tab="attributes">    
+    <div class="block">
+        <label>rollAttributes
+            {{localize "DoD.charactereation.attributes"}}
+            {{#if (not _state.allRolled)}}
+                <a class="fa-solid fa-dice-six" data-action="rollAttributes" data-type="{{attribute.name}}"></a>
+            {{/if}}
+        </label>
+        <div class="form-group">
+            {{#each config.attributes as |attribute|}}
+                <div class="flexcol">
+                    <label>
+                        {{localize attribute}}
+                    </label>
+                    <input type="number" value="{{lookup ../_state.attributes @key}}" min="1" max="18" />
+                </div>
+            {{/each}}
+        </div>
+        <div class="form-group attribute-swap">
+            <label>
+                {{localize "DoD.charactereation.swapAttributes"}}
+            </label>
+            <select data-type="1" data-action="swap">
+                {{#each config.attributes as |attribute|}}
+                    <option value="{{@key}}">{{localize attribute}}</option>
+                {{/each}}
+            </select>
+
+            <select data-type="2" data-action="swap">
+                {{#each config.attributes as |attribute|}}
+                    <option value="{{@key}}">{{localize attribute}}</option>
+                {{/each}}
+            </select>
+            <button data-action="swapValues" {{#if _state.swapAttr}}disabled{{/if}}>{{localize "DoD.charactereation.swap"}}</button>
+            <button data-action="resetAttributes" >{{localize "DoD.charactereation.reset"}}</button>
+        </div>
+    </div>
+</section>

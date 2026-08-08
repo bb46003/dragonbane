@@ -1,0 +1,25 @@
+<section   class="tab age {{tabs.age.cssClass}}"  action-data="tab"  data-tab="age">    
+    <div class="block">
+        <div class="form-group">
+            <label class="flexrow">
+                {{localize "DoD.charactereation.age"}}
+                {{#if ageTable}}
+                    <a class="fa-solid fa-dice-d20" data-action="rollTable" data-type="age"></a>
+                {{/if}}
+            </label>
+            <select class="age-edit" name="system.age">
+
+                {{selectOptions config.ageTypes selected=_state.age localize=true}}
+            </select>
+        </div>
+        <div class="form-group">
+            <label class="flexrow">
+                {{localize "DoD.charactereation.name"}}
+                {{#if nameTable}}
+                    <a class="fa-solid fa-dice-d20" data-action="rollTable" data-type="name"></a>
+                {{/if}}
+            </label>
+            <input type="text" id="name" name="name" value="{{_state.name}}">
+        </div>
+    </div>
+</section>
