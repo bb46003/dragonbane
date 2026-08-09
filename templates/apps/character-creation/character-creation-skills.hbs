@@ -2,7 +2,7 @@
     <div class="block">
         <div class="form-group profession-skills" data-type="profession">
             <label>{{localize "DoD.charactereation.skillsProfession"}}</label>
-             <div class="flexcol" >
+             <div class="flexcol skill-list" >
             {{#each skills.professionSkills as |skill|}}
                <div class="flexcol" name="{{skill}}">
                     <label>
@@ -15,7 +15,7 @@
         </div>
         <div class="form-group other-skills" data-type="other">
             <label>{{localize "DoD.charactereation.skillsOther"}}</label>
-             <div class="flexcol">
+             <div class="flexcol skill-list">
             {{#each skills.availableSkills as |skill|}}
                <div class="flexcol" name="{{skill}}">
                     <label>

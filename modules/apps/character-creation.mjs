@@ -228,7 +228,7 @@ if (professionSkillsElement && otherSkillsElement) {
     [...container.querySelectorAll('input[type="checkbox"]')];
 
   const getSkill = (input) =>
-    input.closest('[name]')?.getAttribute('name');
+    input.closest('[name]')?.getAttribute('name').trim();
 
   const updateSkills = () => {
     const professionSkills = getInputs(professionSkillsElement);
@@ -259,7 +259,6 @@ if (professionSkillsElement && otherSkillsElement) {
 
     otherSkills.forEach(input => {
       const skill = getSkill(input);
-
       input.disabled =
         (!input.checked && numberOfOtherSkills >= maxOtherSkills) ||
         (!input.checked && selectedProfessionSkills.has(skill));
