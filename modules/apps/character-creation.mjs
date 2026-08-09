@@ -106,7 +106,6 @@ export default class DoDCharacterCreation extends HandlebarsApplicationMixin(
     context.numbersOfKins = context.kin.length;
     context.numbersOfProfession = context.profession.length;
     context.selectedKin = context.kin[this._state.selectedKinIndex];
-    context.selectedProfession =
     context.profession[this._state.selectedProfessionIndex];
     context._state = this._state;
     context.tabs[this._state.activeTab].cssClass = "active";
@@ -142,7 +141,7 @@ export default class DoDCharacterCreation extends HandlebarsApplicationMixin(
   async _prepareProfession() {
     const items = game.items.filter((i) => i.type === "profession");
 
-    const profesion = items.map(async (item) => ({
+    const profession = items.map(async (item) => ({
       name: item.name,
       description: await CONFIG.DoD.TextEditor.enrichHTML(
         item.system.itemDescription,
@@ -152,7 +151,7 @@ export default class DoDCharacterCreation extends HandlebarsApplicationMixin(
       keyAtr: item.system?.attribute?.toUpperCase() ?? "",
       abilities: await this._getAbility(item.system?.abilities),
     }));
-    return Promise.all(profesion);
+    return Promise.all(profession);
   }
 
   async _getAbility(namesString) {
@@ -171,19 +170,17 @@ export default class DoDCharacterCreation extends HandlebarsApplicationMixin(
     return abilities;
   }
 
-  async _prepareSkills(proffesionList) {
+  async _prepareSkills(professionList) {
     const allSkills = game.items
       .filter((item) => item.type === "skill" && item.system.skillType !== "magic")
       .map((item) => item.name);
     const selectedProfession =
-      proffesionList[this._state.selectedProfessionIndex];
+      professionList[this._state.selectedProfessionIndex];
     if (!selectedProfession) return allSkills;
 
     const professionSkills = selectedProfession.skills ?? [];
-    const availableSkills = allSkills.filter(
-      (skillName) => !professionSkills.includes(skillName),
-    );
-    return {availableSkills:availableSkills, professionSkills:professionSkills};
+
+    return {availableSkills:allSkills, professionSkills:professionSkills};
   }
   async getAgeTable() {
     const age = ["Age", game.i18n.localize("DoD.ui.character-sheet.age")];
@@ -209,8 +206,8 @@ async _onRender(context, options) {
   const kinSelect = element.querySelector('select[name="kin"]');
   const professionSelect = element.querySelector('select[name="profession"]');
 
-  kinSelect?.addEventListener("change", this._onKinChange);
-  professionSelect?.addEventListener("change", this._onProfessionChange);
+  kinSelect?.addEventListener("change", this._onKinChange.bind(this));
+  professionSelect?.addEventListener("change", this._onProfessionChange.bind(this));
 
   const selects = element.querySelectorAll('select[data-action="swap"]');
 
@@ -222,41 +219,75 @@ async _onRender(context, options) {
 
   this._updateSwapOptions(selects);
 
-  const proffesionSkills = element.querySelector(".profession-skills");
-  const otherSkills = element.querySelector(".other-skills");
+const professionSkillsElement = element.querySelector(".profession-skills");
+const otherSkillsElement = element.querySelector(".other-skills");
 
+if (professionSkillsElement && otherSkillsElement) {
 
-  const setupSkillLimit = (container, maxSelected) => {
-    if (!container) return;
+  const getInputs = (container) =>
+    [...container.querySelectorAll('input[type="checkbox"]')];
 
-    const checkboxes = element.querySelectorAll('input[type="checkbox"]');
+  const getSkill = (input) =>
+    input.closest('[name]')?.getAttribute('name');
 
-    const updateState = () => {
-      const checkedCount = [...checkboxes]
-        .filter(input => input.checked)
-        .length;
+  const updateSkills = () => {
+    const professionSkills = getInputs(professionSkillsElement);
+    const otherSkills = getInputs(otherSkillsElement);
 
-      checkboxes.forEach(input => {
-        input.disabled = !input.checked && checkedCount >= maxSelected;
-      });
-    };
+    const selectedProfessionSkills = new Set(
+      professionSkills.filter(i => i.checked).map(getSkill)
+    );
 
-    checkboxes.forEach(input => {
-      input.addEventListener("change", updateState);
+    const selectedOtherSkills = new Set(
+      otherSkills.filter(i => i.checked).map(getSkill)
+    );
+
+    const maxProfessionSkills = 6;
+    const maxOtherSkills = this._state.numberOfSelectedSkills;
+
+    const numberOfProfessionSkills = selectedProfessionSkills.size;
+    const numberOfOtherSkills = selectedOtherSkills.size;
+
+  
+    professionSkills.forEach(input => {
+      const skill = getSkill(input);
+
+      input.disabled =
+        (!input.checked && numberOfProfessionSkills >= maxProfessionSkills) ||
+        (!input.checked && selectedOtherSkills.has(skill));
     });
 
-    updateState();
+    otherSkills.forEach(input => {
+      const skill = getSkill(input);
+
+      input.disabled =
+        (!input.checked && numberOfOtherSkills >= maxOtherSkills) ||
+        (!input.checked && selectedProfessionSkills.has(skill));
+    });
   };
-  const inputName = element.querySelector('input[name="name"]');
-  inputName?.addEventListener("input", (event) => {
-    if (event.target.value.trim() !== "") {
-      const nextButton = element.querySelector('button[data-type="1"]');
-      nextButton.disabled = false;
-    }
+
+
+  const allCheckboxes = [
+    ...getInputs(professionSkillsElement),
+    ...getInputs(otherSkillsElement),
+  ];
+
+  allCheckboxes.forEach(input => {
+    input.addEventListener("change", updateSkills);
   });
 
-  setupSkillLimit(proffesionSkills, 6);
-  setupSkillLimit(otherSkills, this._state.numberOfSelectedSkills);
+
+  updateSkills();
+}
+
+
+  const inputName = element.querySelector('input[name="name"]');
+  inputName?.addEventListener("input", (event) => {
+    const nextButton = element.querySelector('button[data-type="1"]');
+    if (nextButton) {
+      nextButton.disabled = event.target.value.trim() === "";
+    }
+  });
 }
 _updateSwapOptions(selects) {
   const selectArray = Array.from(selects);
@@ -287,9 +318,6 @@ _updateSwapOptions(selects) {
   });
 }
 
-  // =========================
-  // EVENT HANDLERS
-  // =========================
 
   _onKinChange(event) {
     const index = Number(event.target.value);
@@ -505,13 +533,40 @@ _updateSwapOptions(selects) {
     } else {
       previousButton.disabled = true;
     }
-    this._state.activeTab = nextTabName;
-    currentTab.classList.remove("active");
-    nextTab.classList.add("active");
+
     if (nextTabName === "age") {
       const nextButton = app.form.querySelector('button[data-type="1"]');
       nextButton.disabled = true;
     }
+    if (nextTabName === "skills") {
+      this.render({ force: true });
+    }
+    if(currentTabName === "age"){
+      const element = target.offsetParent;
+      const ageSelect = element.querySelector('select[name="age"]');
+      const value = ageSelect.value;
+      let selectedAge = "";
+      let numberOfSelectedSkills = 4;
+       switch (value.toLowerCase()) {
+          case "young":
+            selectedAge = "young";
+            numberOfSelectedSkills = 2;
+            break;
+          case "adult":
+            selectedAge = "adult";
+            numberOfSelectedSkills = 4;
+            break;
+          case "old":
+            selectedAge = "old";
+            numberOfSelectedSkills = 6;
+            break;
+        }
+         this._state.age = selectedAge;
+         this._state.numberOfSelectedSkills = numberOfSelectedSkills;
+    }
+        this._state.activeTab = nextTabName;
+    currentTab.classList.remove("active");
+    nextTab.classList.add("active");
   }
 
   static #resetAttributes(ev) {
