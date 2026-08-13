@@ -1,3 +1,6 @@
+import DoD_Utility from "../utility.js";
+
+
 const { HandlebarsApplicationMixin } = foundry.applications.api;
 const { ApplicationV2 } = foundry.applications.api;
 
@@ -20,6 +23,8 @@ export default class DoDCharacterCreation extends HandlebarsApplicationMixin(
         wil: 0,
         cha: 0,
       },
+      gear: "",
+      memento: "",
       numberOfSelectedSkills: 4,
       selectedSkills: [],
       activeTab: "kin",
@@ -47,6 +52,10 @@ export default class DoDCharacterCreation extends HandlebarsApplicationMixin(
     position: {
       width: 480,
     },
+            form: {
+            submitOnChange: true,
+            closeOnSubmit: false
+        },
     actions: {
       random: DoDCharacterCreation.#rollRandom,
       changeTab: DoDCharacterCreation.#changeTab,
@@ -55,6 +64,7 @@ export default class DoDCharacterCreation extends HandlebarsApplicationMixin(
       rollAttributes: DoDCharacterCreation.#rollAttributes,
       swapValues: DoDCharacterCreation.#swapValues,
     },
+
   };
 
   static PARTS = {
@@ -82,6 +92,18 @@ export default class DoDCharacterCreation extends HandlebarsApplicationMixin(
       template:
         "systems/dragonbane/templates/apps/character-creation/character-creation-skills.hbs",
     },
+    weakness: {
+      template:
+        "systems/dragonbane/templates/apps/character-creation/character-creation-weakness.hbs",
+    },
+    gear: {
+      template:
+        "systems/dragonbane/templates/apps/character-creation/character-creation-gear.hbs",
+    },
+    memento:{
+      template:
+        "systems/dragonbane/templates/apps/character-creation/character-creation-memento.hbs",
+    }
   };
   static TABS = {
     items: {
@@ -91,6 +113,9 @@ export default class DoDCharacterCreation extends HandlebarsApplicationMixin(
         { id: "age" },
         { id: "attributes" },
         { id: "skills" },
+        { id: "weakness" },
+        {id: "gear"},
+        {id: "memento"},
       ],
     },
   };
@@ -114,10 +139,32 @@ export default class DoDCharacterCreation extends HandlebarsApplicationMixin(
     context.ageTable = await this.getAgeTable();
     context.nameTable = await this.getNameTable(context.kin);
     context.skills = await this._prepareSkills(context.profession);
-
+    context.weaknessTable = await this._prepareWeaknessTable();
+    context.weaknessHTML = await this.enrich(this._state.weakness);
+    context.gearTable = await this._prepareGearTable()
+    context.gearTableHTML = await this.enrich("@DisplayTable["+context.gearTable+"]")
+    if(context.gearTable){
+      context.gearOption = await this._prepareGearOption(context.gearTable)
+    }
+    context.mementoTable = await this._prepareMementosTable();
+    if(this._state.memento === ""){
+      context.mementoHTML = ""
+    }else{
+      context.mementoHTML = await this.enrich("@UUID["+this._state.memento + "]");
+    }
+   
     return context;
   }
-
+    async enrich(html) {
+        if (html) {
+            return await CONFIG.DoD.TextEditor.enrichHTML(html, {
+                relativeTo: this.document,
+                async: true
+            });
+        } else {
+            return html;
+        }
+    }
   // =========================
   // DATA PREPARATION
   // =========================
@@ -196,8 +243,76 @@ export default class DoDCharacterCreation extends HandlebarsApplicationMixin(
       kinNames.some((name) => table.name.includes(name)),
     );
   }
+  async _prepareWeaknessTable() {
+const weakness = [
+    "Weakness",
+    game.i18n.localize("DoD.ui.character-sheet.weakness")
+];
 
+const weaknessTable = game.tables.filter(table =>
+    weakness.some(word =>
+        table.name.slice(0, 7).toLowerCase() === word.slice(0, 7).toLowerCase()
+    )
+);
+if (weaknessTable.length > 0) {
+    const table = weaknessTable[0];
+    return table.uuid;
+}else{
+  return ""
+}
 
+  }
+async _prepareGearTable() {
+    const allProfession = await this._prepareProfession();
+
+    const gear = [
+        game.i18n.localize("DoD.ui.character-sheet.gear"),
+        "gear"
+    ];
+
+    const profession = allProfession[this._state.selectedProfessionIndex];
+    const gearTable = game.tables.filter(table => {
+        const tableName = table.name.toLowerCase();
+        const professionMatch = tableName.includes(
+            profession.name.toLowerCase()
+        );
+        const gearMatch = gear.some(word =>
+            tableName.startsWith(word.slice(0, 5).toLowerCase())
+        );
+        return professionMatch && gearMatch;
+    });
+    if (gearTable.length > 0) {
+        return gearTable[0].uuid;
+    }
+    return "";
+}
+async _prepareGearOption(uuid) {
+    const gearTable = await fromUuid(uuid);
+    const options = [];
+    for (const result of gearTable.results) {
+        const range = result.range.join("-");
+        options.push(`${range}`);
+    }
+    return options;
+}
+  async _prepareMementosTable() {
+const weakness = [
+    "Memento",
+    game.i18n.localize("DoD.ui.character-sheet.memento")
+];
+
+const weaknessTable = game.tables.filter(table =>
+    weakness.some(word =>
+        table.name.slice(0, 7).toLowerCase() === word.slice(0, 7).toLowerCase()
+    )
+);
+if (weaknessTable.length > 0) {
+    const table = weaknessTable[0];
+    return table.uuid;
+}else{
+  return ""
+}
+  }
 async _onRender(context, options) {
   await super._onRender(context, options);
 
@@ -287,6 +402,11 @@ if (professionSkillsElement && otherSkillsElement) {
       nextButton.disabled = event.target.value.trim() === "";
     }
   });
+element.addEventListener('save', async (event) => { 
+  const target = event.target
+  this._state[target.name] = target.value
+  this.render()
+})
 }
 _updateSwapOptions(selects) {
   const selectArray = Array.from(selects);
@@ -315,6 +435,8 @@ _updateSwapOptions(selects) {
       option.disabled = otherSelectedValues.has(option.value);
     });
   });
+
+  
 }
 
 
@@ -376,6 +498,10 @@ _updateSwapOptions(selects) {
       );
       table = await this.selectTable(ageTables, "Age");
     }
+    if(type === "weakness" || type === "gear" || type === "memento"){
+      const uuid = target.dataset.uuid;
+      table = await fromUuid(uuid);
+    }
 
     if (!table) return;
 
@@ -408,6 +534,17 @@ _updateSwapOptions(selects) {
         }
         this._state.age = rolledAge;
         break;
+      case "weakness":
+        this._state.weakness = value;
+        break;
+      case "memento":
+        this._state.memento = result.results[0].documentUuid;
+        break;
+      case "gear":
+        const gear = result.results[0].range.join("-");
+        this._state.gear = gear;
+        break;
+
     }
 
     this.render({ force: true });
@@ -495,7 +632,7 @@ _updateSwapOptions(selects) {
     return selectedTable;
   }
 
-  static #changeTab(ev) {
+  static async #changeTab(ev) {
     ev.preventDefault();
 
     const target = ev.target;
@@ -507,10 +644,10 @@ _updateSwapOptions(selects) {
       "age",
       "attributes",
       "skills",
-      "weaknes",
+      "weakness",
       "gear",
       "memento",
-      "aperance",
+      "summary",
     ];
 
     const app = this;
@@ -521,9 +658,14 @@ _updateSwapOptions(selects) {
     let index = tabs.indexOf(currentTabName);
     if (index === -1) index = 0;
 
-    const nextIndex = index + direction;
-    const nextTabName = tabs[nextIndex];
-
+    let nextIndex = index + direction;
+    let nextTabName = tabs[nextIndex];
+    const isGerTable = await this._prepareGearTable();
+    const isMementTable = await this._prepareMementosTable();
+    if((nextTabName === "gear" && isGerTable === "") || (nextTabName === "memento" && isMementTable === "")){
+      nextIndex = index + 2*direction;
+      nextTabName = tabs[nextIndex]
+    }
     const nextTab = app.form.querySelector(`.tab[data-tab="${nextTabName}"]`);
     const previousButton = app.form.querySelector('button[data-type="-1"]');
 
@@ -533,13 +675,15 @@ _updateSwapOptions(selects) {
       previousButton.disabled = true;
     }
 
-    if (nextTabName === "age") {
+    if (nextTabName === "age" && this._state.name.trim() === "") {
       const nextButton = app.form.querySelector('button[data-type="1"]');
       nextButton.disabled = true;
     }
-    if (nextTabName === "skills") {
-      this.render({ force: true });
+    else{
+      const nextButton = app.form.querySelector('button[data-type="1"]');
+      nextButton.disabled = false;
     }
+
     if(currentTabName === "age"){
       const element = target.offsetParent;
       const ageSelect = element.querySelector('select[name="age"]');
@@ -566,6 +710,7 @@ _updateSwapOptions(selects) {
         this._state.activeTab = nextTabName;
     currentTab.classList.remove("active");
     nextTab.classList.add("active");
+    this.render()
   }
 
   static #resetAttributes(ev) {
@@ -640,7 +785,13 @@ _updateSwapOptions(selects) {
             ).value;
 
             this._state.attributes[attribute] = rolledValue;
+            const availableAttributes = Object.entries(this._state.attributes)
+              .filter(([_, value]) => value === 0)
+              .map(([key]) => key);
 
+            if (!availableAttributes.length) {
+              this._state.allRolled = true;
+            }
             this.render();
           },
         },
@@ -672,4 +823,6 @@ _updateSwapOptions(selects) {
     this._state.swapAttr = true;
     this.render({ force: true });
   }
+
+
 }

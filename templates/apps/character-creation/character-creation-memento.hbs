@@ -1,0 +1,23 @@
+<section   class="tab memento {{tabs.memento.cssClass}}"  action-data="tab"  data-tab="memento">    
+    <div class="block">
+        <label>
+            {{localize "DoD.charactereation.memento"}}
+            {{#if (ne mementoTable "")}}
+            <a data-tooltip="{{localize "DoD.characterCreation.randomMemento"}}" 
+                class="fa-solid fa-dice-d20" 
+                data-action="rollTable" 
+                data-type="memento" 
+                data-uuid="{{mementoTable}}"> 
+            </a>
+            {{/if}}
+        </label>
+        <prose-mirror
+                name="memento"
+                value="{{_state.memento}}"
+                button="true"
+                editable="{{editable}}"
+                toggled="false">
+            {{{mementoHTML}}}
+        </prose-mirror>
+    </div>
+</section>

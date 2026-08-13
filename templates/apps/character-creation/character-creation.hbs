@@ -1,8 +1,11 @@
 <section class="character-creation">
 
-<div class="flexrow">
-<button data-action="changeTab" data-type="-1" disabled>{{localize "DoD.characterCreation.previous"}}</button>
-<button data-action="changeTab" data-type="1">{{localize "DoD.characterCreation.next"}}</button>
-
+<div class="flexrow">    
+<button data-action="changeTab" data-type="-1" {{#if (eq _state.activeTab "kin")}}disabled{{/if}}>{{localize "DoD.characterCreation.previous"}}</button>
+{{#if (ne _state.activeTab "summary")}}
+<button data-action="changeTab" data-type="1"{{#if (and (eq _state.name "") (eq _state.activeTab "age"))}}disabled{{/if}}>{{localize "DoD.characterCreation.next"}}</button>
+{{else}}
+<button data-action="createActor">{{localize "DoD.characterCreation.create"}}</button>
+{{/if}}
 </div> 
 </section>

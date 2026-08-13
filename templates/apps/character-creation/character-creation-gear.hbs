@@ -1,0 +1,30 @@
+<section   class="tab gear {{tabs.gear.cssClass}}"  action-data="tab"  data-tab="gear">    
+    <div class="block">
+        <label>
+            {{localize "DoD.characterCreation.gear"}}
+            {{#if (ne gearTable "")}}
+                <a data-tooltip="{{localize "DoD.characterCreation.randomGear"}}" 
+                    class="fa-solid fa-dice-d20" 
+                    data-action="rollTable" 
+                    data-type="gear" 
+                    data-uuid="{{gearTable}}"> 
+            </a>                      
+            {{/if}}
+        </label>
+       {{#if (ne gearTable "")}}
+
+        <p>
+             {{{gearTableHTML}}}
+        </p>
+        <div>
+        <label>{{localize "DoD.characterCreation.selectGearOption"}}</label>
+        <select class="selected-ger">
+            {{#each gearOption as |option index|}}
+                <option value="{{index}}" {{#if (eq ../_state.gear option)}}selected{{/if}}>{{option}}</option>
+            {{/each}}
+        </select>
+       </div>
+
+       {{/if}}
+    </div>
+</section>
