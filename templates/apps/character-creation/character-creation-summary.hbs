@@ -14,19 +14,20 @@
             {{/each}}
         </ul>
         <label>{{localize "DoD.characterCreation.choiceProfession"}}</label>
-        <label>{{lookup (lookup profession _state.selectedProfessionIndex) "name"}}</label>        <ul>
+        <label>{{lookup (lookup profession _state.selectedProfessionIndex) "name"}}</label>        
+        <ul>
             {{#each (lookup (lookup profession _state.selectedProfessionIndex) "abilities") as |abilitie|}}
                 <li>
                     <label>{{abilitie.name}}</label>
                 </li>
             {{/each}}
         </ul>
-        <label>{{localize "DoD.charactereation.age"}}</label>
-        <label>{{localize (concat "DoD.ageTypes." _state.age)}}</label>
-        <label> {{localize "DoD.charactereation.name"}}</label>
+        <label> {{localize "DoD.characterCreation.name"}}</label>
         <label>{{_state.name}}</label>
+        <label>{{localize "DoD.characterCreation.age"}}</label>
+        <label>{{localize (concat "DoD.ageTypes." _state.age)}}</label>
         <div>
-            <label>{{localize "DoD.charactereation.attributes"}}</label>
+            <label>{{localize "DoD.characterCreation.attributes"}}</label>
                         {{#each config.attributes as |attribute|}}
                 <div class="flexcol">
                     <label>
@@ -37,25 +38,34 @@
             {{/each}}
         </div>
         <div>
-            <label>{{localize "DoD.charactereation.skillsProfession"}}</label>
+            <label>{{localize "DoD.characterCreation.skillsProfession"}}</label>
             <div class="flexcol skill-list">
-                {{#each _state.selectedSkills as |skill|}}
-                <label>{{skill}}</label>
-                {{/each}}
+                <ul> 
+                    {{#each _state.selectedSkills as |skill|}}
+                    <li>
+                        <label>{{skill}}</label>
+                    </li>
+                    {{/each}}
+                </ul>
             </div>
         </div>
-        {{#if (ne _state.weakness "")}}
-            <label>{{localize "DoD.charactereation.weakness"}}</label>
-            <p>{{{weaknessHTML}}}</p>
-        {{/if}}
+
         {{#if (ne _state.gear "")}}
             <label>{{localize "DoD.characterCreation.gear"}}</label>
+         <ul>  
             {{#each gearName as |gear|}}
+            <li>            
                 <label>{{gear}}</label>
+            </li>
             {{/each}}
+         </ul>
+        {{/if}}
+        {{#if (ne _state.weakness "")}}
+            <label>{{localize "DoD.characterCreation.weakness"}}</label>
+            <p>{{{weaknessHTML}}}</p>
         {{/if}}
         {{#if (ne _state.memento "")}}
-            <label>{{localize "DoD.charactereation.memento"}}</label>
+            <label>{{localize "DoD.characterCreation.memento"}}</label>
             <p>{{mementoName}}</p>
         {{/if}}
     </div>

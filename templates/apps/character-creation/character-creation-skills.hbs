@@ -1,7 +1,7 @@
 <section   class="tab skills {{tabs.skills.cssClass}}"  action-data="tab"  data-tab="skills">    
     <div class="block">
         <div class="form-group profession-skills" data-type="profession">
-            <label>{{localize "DoD.charactereation.skillsProfession"}}</label>
+            <label>{{localize "DoD.characterCreation.skillsProfession"}}</label>
              <div class="flexcol skill-list" >
             {{#each skills.professionSkills as |skill|}}
                <div class="flexcol" data-name="{{skill}}">
@@ -14,7 +14,7 @@
               </div>
         </div>
         <div class="form-group other-skills" data-type="other">
-            <label>{{localize "DoD.charactereation.skillsOther"}}</label>
+            <label>{{localize "DoD.characterCreation.skillsOther"}}</label>
              <div class="flexcol skill-list">
             {{#each skills.availableSkills as |skill|}}
                <div class="flexcol" data-name="{{skill}}">
