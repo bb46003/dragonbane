@@ -19,8 +19,8 @@
         <div>
         <label>{{localize "DoD.characterCreation.selectGearOption"}}</label>
         <select class="selected-ger">
-            {{#each gearOption as |option index|}}
-                <option value="{{index}}" {{#if (eq ../_state.gear option)}}selected{{/if}}>{{option}}</option>
+            {{#each gearOption as |option|}}
+                <option value="{{option}}" {{#if (eq ../_state.gear option)}}selected{{/if}}>{{option}}</option>
             {{/each}}
         </select>
        </div>

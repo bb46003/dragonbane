@@ -13,6 +13,7 @@ export default class DoDCharacterCreation extends HandlebarsApplicationMixin(
     this._state = {
       selectedKinIndex: 0,
       selectedProfessionIndex: 0,
+      kin: "",
       name: "",
       age: "",
       attributes: {
@@ -24,6 +25,7 @@ export default class DoDCharacterCreation extends HandlebarsApplicationMixin(
         cha: 0,
       },
       gear: "",
+      selectedGear: "",
       memento: "",
       numberOfSelectedSkills: 4,
       selectedSkills: [],
@@ -103,6 +105,10 @@ export default class DoDCharacterCreation extends HandlebarsApplicationMixin(
     memento:{
       template:
         "systems/dragonbane/templates/apps/character-creation/character-creation-memento.hbs",
+    },
+    summary:{
+      template:
+        "systems/dragonbane/templates/apps/character-creation/character-creation-summary.hbs",
     }
   };
   static TABS = {
@@ -114,8 +120,9 @@ export default class DoDCharacterCreation extends HandlebarsApplicationMixin(
         { id: "attributes" },
         { id: "skills" },
         { id: "weakness" },
-        {id: "gear"},
-        {id: "memento"},
+        { id: "gear" },
+        { id: "memento" },
+        { id: "summary" }
       ],
     },
   };
@@ -151,8 +158,11 @@ export default class DoDCharacterCreation extends HandlebarsApplicationMixin(
       context.mementoHTML = ""
     }else{
       context.mementoHTML = await this.enrich("@UUID["+this._state.memento + "]");
+      context.mementoName = await this._getMementoName(this._state.memento)
     }
-   
+    if(this._state.selectedGear !== ""){
+      context.gearName = await this._prepareGearName(this._state.selectedGear)
+    }
     return context;
   }
     async enrich(html) {
@@ -313,6 +323,15 @@ if (weaknessTable.length > 0) {
   return ""
 }
   }
+  async _getMementoName(uuid){
+    const memento = await fromUuid(uuid)
+    return memento.name
+  }
+  async _prepareGearName(selectedGear){
+    const names = [...selectedGear.matchAll(/@UUID\[[^\]]+\]\{([^}]*)\}/g)]
+  .map(match => match[1]);
+  return names
+  }
 async _onRender(context, options) {
   await super._onRender(context, options);
 
@@ -343,7 +362,7 @@ if (professionSkillsElement && otherSkillsElement) {
     [...container.querySelectorAll('input[type="checkbox"]')];
 
   const getSkill = (input) =>
-    input.closest('[name]')?.getAttribute('name').trim();
+    input.closest('[data-name]')?.dataset.name?.trim();
 
   const updateSkills = () => {
     const professionSkills = getInputs(professionSkillsElement);
@@ -681,7 +700,9 @@ _updateSwapOptions(selects) {
     }
     else{
       const nextButton = app.form.querySelector('button[data-type="1"]');
-      nextButton.disabled = false;
+      if(nextButton){
+        nextButton.disabled = false;
+      }
     }
 
     if(currentTabName === "age"){
@@ -707,7 +728,46 @@ _updateSwapOptions(selects) {
          this._state.age = selectedAge;
          this._state.numberOfSelectedSkills = numberOfSelectedSkills;
     }
-        this._state.activeTab = nextTabName;
+    if(currentTabName === "skills"){
+const selectedSkills = currentTab.querySelectorAll("input[type=checkbox]");
+
+selectedSkills.forEach((checkbox) => {
+  if (checkbox.checked) {
+    const flexcol = checkbox.closest("div.flexcol");
+
+    if (flexcol) {
+      const skillName = flexcol.dataset.name; // if name is stored as data-name
+      this._state.selectedSkills.push(skillName);
+    }
+  }
+});
+    }
+if (currentTabName === "gear") {
+    const gearTableUuid = await this._prepareGearTable();
+    const gearTable = await fromUuid(gearTableUuid);
+
+    let selectedRange = this._state.gear;
+    if(selectedRange === ""){
+        selectedRange = currentTab.querySelector(".selected-ger").value
+    }
+    const [selectedMin, selectedMax] = selectedRange
+        .split("-")
+        .map(Number);
+
+    const descriptions = gearTable.results
+        .filter(result => {
+            const [resultMin, resultMax] = result.range;
+
+            return (
+                selectedMin >= resultMin &&
+                selectedMax <= resultMax
+            );
+        })
+        .map(result => result.description);
+
+    this._state.selectedGear = descriptions[0];
+}
+    this._state.activeTab = nextTabName;
     currentTab.classList.remove("active");
     nextTab.classList.add("active");
     this.render()

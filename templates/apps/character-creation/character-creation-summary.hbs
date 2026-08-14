@@ -1,0 +1,62 @@
+<section   class="tab summary {{tabs.summary.cssClass}}"  action-data="tab"  data-tab="summary">    
+    <div class="block">
+        <label>{{localize "DoD.characterCreation.summary"}}</label>
+    </div>
+    <div>
+        <p> {{localize "DoD.characterCreation.choiceKin"}}</p>
+        <Label>{{selectedKin.name}}</Label>
+        <label>{{localize "DoD.ui.character-sheet.abilities"}}</label>
+        <ul>
+            {{#each selectedKin.abilities}}
+                <li>
+                    <label>{{this.name}}</label>
+                </li>
+            {{/each}}
+        </ul>
+        <label>{{localize "DoD.characterCreation.choiceProfession"}}</label>
+        <label>{{lookup (lookup profession _state.selectedProfessionIndex) "name"}}</label>        <ul>
+            {{#each (lookup (lookup profession _state.selectedProfessionIndex) "abilities") as |abilitie|}}
+                <li>
+                    <label>{{abilitie.name}}</label>
+                </li>
+            {{/each}}
+        </ul>
+        <label>{{localize "DoD.charactereation.age"}}</label>
+        <label>{{localize (concat "DoD.ageTypes." _state.age)}}</label>
+        <label> {{localize "DoD.charactereation.name"}}</label>
+        <label>{{_state.name}}</label>
+        <div>
+            <label>{{localize "DoD.charactereation.attributes"}}</label>
+                        {{#each config.attributes as |attribute|}}
+                <div class="flexcol">
+                    <label>
+                        {{localize attribute}}
+                    </label>
+                    <input type="number" value="{{lookup ../_state.attributes @key}}" min="1" max="18" disabled/>
+                </div>
+            {{/each}}
+        </div>
+        <div>
+            <label>{{localize "DoD.charactereation.skillsProfession"}}</label>
+            <div class="flexcol skill-list">
+                {{#each _state.selectedSkills as |skill|}}
+                <label>{{skill}}</label>
+                {{/each}}
+            </div>
+        </div>
+        {{#if (ne _state.weakness "")}}
+            <label>{{localize "DoD.charactereation.weakness"}}</label>
+            <p>{{{weaknessHTML}}}</p>
+        {{/if}}
+        {{#if (ne _state.gear "")}}
+            <label>{{localize "DoD.characterCreation.gear"}}</label>
+            {{#each gearName as |gear|}}
+                <label>{{gear}}</label>
+            {{/each}}
+        {{/if}}
+        {{#if (ne _state.memento "")}}
+            <label>{{localize "DoD.charactereation.memento"}}</label>
+            <p>{{mementoName}}</p>
+        {{/if}}
+    </div>
+</section>
